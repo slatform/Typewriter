@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typewriter</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #7F7FD5, #86A8E7, #91EAE4);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    header {
+      margin: 30px 0;
+      text-align: center;
+      color: #fff;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.8em;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    main {
+      width: 90%;
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      padding: 40px 30px;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(4px);
+    }
+    /* Text Display */
+    .text-display {
+      margin: 20px auto;
+      padding: 25px 20px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1.6em;
+      letter-spacing: 1px;
+      line-height: 1.6;
+      min-height: 130px;
+      user-select: none;
+      word-wrap: break-word;
+      box-shadow: inset 0 4px 8px rgba(0,0,0,0.04);
+    }
+    .text-display span.correct {
+      color: #4caf50;
+      transition: color 0.25s ease;
+    }
+    .text-display span.incorrect {
+      color: #f44336;
+      transition: color 0.25s ease;
+    }
+    /* Metrics */
+    .metrics {
+      margin: 25px 0;
+      font-size: 1.3em;
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+    }
+    .metrics span {
+      background: #f7f7f7;
+      padding: 10px 18px;
+      border-radius: 25px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+    /* Virtual Keyboard */
+    .keyboard {
+      margin: 25px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+    }
+    .keyboard .key-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .keyboard .key {
+      margin: 5px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 6px;
+      background: #e6e6e6;
+      font-size: 1em;
+      min-width: 36px;
+      text-align: center;
+      transition: background 0.15s, transform 0.15s;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    .keyboard .key.active {
+      background: #90caf9;
+      transform: scale(1.1);
+    }
+    /* Controls */
+    .controls {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .controls button {
+      padding: 14px 28px;
+      font-size: 1em;
+      font-weight: 500;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #5563DE, #74ABE2);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.25s, transform 0.25s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .controls button:hover {
+      transform: translateY(-3px);
+    }
+    .controls button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+      transform: none;
+    }
+    /* Results Screen (Overlay) */
+    .results-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s;
+      z-index: 10;
+    }
+    .results-screen.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .results-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px 25px;
+      text-align: center;
+      animation: slideDown 0.6s ease;
+      width: 85%;
+      max-width: 420px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .results-content h2 {
+      margin-top: 0;
+      font-size: 2.2em;
+      color: #333;
+    }
+    .results-content p {
+      font-size: 1.3em;
+      margin: 12px 0;
+    }
+    .results-content button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 1em;
+      font-weight: 500;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #5563DE, #74ABE2);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.25s, transform 0.25s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .results-content button:hover {
+      transform: translateY(-3px);
+    }
+    @keyframes slideDown {
+      from {
+        transform: translateY(-40px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    /* Mobile-friendly adjustments */
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 2.2em;
+      }
+      .text-display {
+        font-size: 1.3em;
+        padding: 18px;
+      }
+      .keyboard .key {
+        padding: 8px 10px;
+        font-size: 0.9em;
+      }
+      .controls button {
+        padding: 10px 20px;
+        font-size: 0.9em;
+      }
+      .results-content h2 {
+        font-size: 1.8em;
+      }
+      .results-content p {
+        font-size: 1em;
+      }
+      .results-content button {
+        padding: 10px 18px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Typewriter</h1>
+  </header>
+  <main>
+    <!-- Display for generated text -->
+    <div id="textDisplay" class="text-display"></div>
+    <!-- Performance Metrics -->
+    <div id="metrics" class="metrics">
+      <span id="wpm">WPM: 0</span>
+      <span id="errorCount">Errors: 0</span>
+      <span id="timer">Time: 30s</span>
+    </div>
+    <!-- Virtual Keyboard -->
+    <div id="keyboard" class="keyboard"></div>
+    <!-- Control Buttons -->
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="restartBtn">Restart</button>
+    </div>
+  </main>
+  
+  <!-- Animated Results Screen -->
+  <div id="resultsScreen" class="results-screen">
+    <div class="results-content">
+      <h2>Time's Up!</h2>
+      <p id="finalWPM">WPM: 0</p>
+      <p id="finalErrors">Errors: 0</p>
+      <button id="resultsRestartBtn">Try Again</button>
+    </div>
+  </div>
+  
+  <script>
+    let text = "";
+    let currentIndex = 0;
+    let startTime = null;
+    let errorCount = 0;
+    const wordCount = 15; // Number of words per lesson
+    const totalTime = 30; // Session time in seconds
+    let timeLeft = totalTime;
+    let timerInterval = null;
+    let isStarted = false;
+    
+    const textDisplay = document.getElementById('textDisplay');
+    const wpmDisplay = document.getElementById('wpm');
+    const errorDisplay = document.getElementById('errorCount');
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const resultsScreen = document.getElementById('resultsScreen');
+    const finalWPM = document.getElementById('finalWPM');
+    const finalErrors = document.getElementById('finalErrors');
+    const resultsRestartBtn = document.getElementById('resultsRestartBtn');
+    
+    // Predefined list of 500 common words
+    const wordList = [
+      "the", "of", "and", "to", "a", "in", "is", "you", "that", "it",
+      "he", "was", "for", "on", "are", "as", "with", "his", "they", "I",
+      "at", "be", "this", "have", "from", "or", "one", "had", "by", "word",
+      "but", "not", "what", "all", "were", "we", "when", "your", "can", "said",
+      "there", "use", "an", "each", "which", "she", "do", "how", "their", "if",
+      "will", "up", "other", "about", "out", "many", "then", "them", "these", "so",
+      "some", "her", "would", "make", "like", "him", "into", "time", "has", "look",
+      "two", "more", "write", "go", "see", "number", "no", "way", "could", "people",
+      "my", "than", "first", "water", "been", "call", "who", "oil", "its", "now",
+      "find", "long", "down", "day", "did", "get", "come", "made", "may", "part",
+      "over", "new", "sound", "take", "only", "little", "work", "know", "place", "year",
+      "live", "me", "back", "give", "most", "very", "after", "thing", "our", "just",
+      "name", "good", "sentence", "man", "think", "say", "great", "where", "help", "through",
+      "much", "before", "line", "right", "too", "mean", "old", "any", "same", "tell",
+      "boy", "follow", "came", "want", "show", "also", "around", "form", "three", "small",
+      "set", "put", "end", "does", "another", "well", "large", "must", "big", "even",
+      "such", "because", "turn", "here", "why", "ask", "went", "men", "read", "need",
+      "land", "different", "home", "us", "move", "try", "kind", "hand", "picture", "again",
+      "change", "off", "play", "spell", "air", "away", "animal", "house", "point", "page",
+      "letter", "mother", "answer", "found", "study", "still", "learn", "should", "america", "world",
+      "high", "every", "near", "add", "food", "between", "own", "below", "country", "plant",
+      "last", "school", "father", "keep", "tree", "never", "start", "city", "earth", "eye",
+      "light", "thought", "head", "under", "story", "saw", "left", "few", "while", "along",
+      "might", "close", "something", "seem", "next", "hard", "open", "example", "begin", "life",
+      "always", "those", "both", "paper", "together", "got", "group", "often", "run", "important",
+      "until", "children", "side", "feet", "car", "mile", "night", "walk", "white", "sea",
+      "began", "grow", "took", "river", "four", "carry", "state", "once", "book", "hear",
+      "stop", "without", "second", "later", "miss", "idea", "enough", "eat", "face", "watch",
+      "far", "indian", "real", "almost", "let", "above", "girl", "sometimes", "mountain", "cut",
+      "young", "talk", "soon", "list", "song", "being", "leave", "family", "body", "music",
+      "color", "stand", "sun", "question", "fish", "area", "mark", "dog", "horse", "bird",
+      "problem", "complete", "room", "knew", "since", "ever", "piece", "told", "usually", "didn't",
+      "friends", "easy", "heard", "order", "red", "door", "sure", "become", "top", "ship",
+      "across", "today", "during", "short", "better", "best", "however", "low", "hours", "black",
+      "products", "happened", "whole", "measure", "remember", "early", "waves", "reached", "listen", "wind",
+      "rock", "space", "covered", "fast", "several", "hold", "himself", "toward", "five", "step",
+      "morning", "passed", "vowel", "true", "hundred", "against", "pattern", "numeral", "table", "north",
+      "slowly", "money", "map", "farm", "pulled", "draw", "voice", "seen", "cold", "cried",
+      "plan", "notice", "south", "sing", "war", "ground", "fall", "king", "town", "unit",
+      "figure", "certain", "field", "travel", "wood", "fire", "upon", "done", "english", "road",
+      "halt", "ten", "fly", "gave", "box", "finally", "wait", "correct", "oh", "quick",
+      "person", "became", "shown", "minutes", "strong", "verb", "stars", "front", "feel", "fact",
+      "inches", "street", "decided", "contain", "course", "surface", "produce", "building", "ocean", "class",
+      "note", "nothing", "rest", "carefully", "scientists", "inside", "wheels", "stay", "green", "known",
+      "island", "week", "less", "machine", "base", "ago", "stood", "plane", "system", "behind",
+      "ran", "round", "boat", "game", "force", "brought", "warm", "common", "bring", "explain",
+      "dry", "though", "language", "shape", "deep", "thousands", "clear", "equation", "yet", "government",
+      "filled", "heat", "full", "hot", "check", "object", "am", "rule", "among", "noun",
+      "power", "cannot", "able", "six", "size", "dark", "ball", "material", "special", "heavy",
+      "fine", "pair", "circle", "include", "built", "can't", "matter", "square", "syllables", "perhaps"
+    ];
+    
+    // Generates a random sequence of words from the list
+    function generateText(wordCount) {
+      let words = [];
+      for (let i = 0; i < wordCount; i++) {
+        const randomIndex = Math.floor(Math.random() * wordList.length);
+        words.push(wordList[randomIndex]);
+      }
+      return words.join(" ");
+    }
+    
+    // Renders the generated text with each character in a span
+    function displayText() {
+      textDisplay.innerHTML = "";
+      for (let i = 0; i < text.length; i++) {
+        const span = document.createElement('span');
+        span.textContent = text[i];
+        textDisplay.appendChild(span);
+      }
+    }
+    
+    // Update performance metrics (WPM, errors, timer)
+    function updateMetrics() {
+      const elapsedSeconds = totalTime - timeLeft;
+      const minutes = elapsedSeconds / 60 || 1;
+      const wpm = Math.round(((currentIndex - errorCount) / 5) / minutes);
+      wpmDisplay.textContent = "WPM: " + (elapsedSeconds > 0 ? wpm : 0);
+      errorDisplay.textContent = "Errors: " + errorCount;
+      timerDisplay.textContent = "Time: " + timeLeft + "s";
+    }
+    
+    // Show animated results screen with final metrics
+    function showResults() {
+      finalWPM.textContent = wpmDisplay.textContent;
+      finalErrors.textContent = errorDisplay.textContent;
+      resultsScreen.classList.add('show');
+    }
+    
+    // Ends the session when time runs out or text is completed
+    function endSession() {
+      clearInterval(timerInterval);
+      isStarted = false;
+      showResults();
+    }
+    
+    // Handle keystrokes
+    document.addEventListener('keydown', function(e) {
+      if (e.key.length !== 1) return;
+      
+      // Auto-start: if test hasn't started and current index is 0, start only if first letter is correct
+      if (!isStarted && currentIndex === 0) {
+        if (e.key === text[0]) {
+          startSession();
+        } else {
+          return;
+        }
+      }
+      if (timeLeft <= 0) return;
+      
+      const spans = textDisplay.querySelectorAll('span');
+      const target = text[currentIndex];
+      const keyPressed = e.key;
+      
+      if (keyPressed === target) {
+        spans[currentIndex].classList.remove('incorrect');
+        spans[currentIndex].classList.add('correct');
+        currentIndex++;
+        updateMetrics();
+        if (currentIndex === text.length) {
+          clearInterval(timerInterval);
+          isStarted = false;
+          showResults();
+        }
+      } else {
+        if (!spans[currentIndex].classList.contains('incorrect')) {
+          spans[currentIndex].classList.add('incorrect');
+        }
+        errorCount++;
+        updateMetrics();
+      }
+    });
+    
+    // Virtual keyboard layout (letters and space)
+    const keyboardLayout = [
+      ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+      ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+      ["z", "x", "c", "v", "b", "n", "m"],
+      [" "]
+    ];
+    
+    const keyboardDiv = document.getElementById('keyboard');
+    
+    // Build digital keyboard with lowercase keys
+    function createKeyboard() {
+      keyboardDiv.innerHTML = "";
+      keyboardLayout.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = "key-row";
+        row.forEach(key => {
+          const keyDiv = document.createElement('div');
+          keyDiv.className = "key";
+          keyDiv.textContent = key === " " ? "space" : key;
+          keyDiv.setAttribute('data-key', key);
+          rowDiv.appendChild(keyDiv);
+        });
+        keyboardDiv.appendChild(rowDiv);
+      });
+    }
+    
+    // Highlight a key briefly when pressed
+    function highlightKey(key) {
+      const keyElement = keyboardDiv.querySelector(`[data-key="${key}"]`);
+      if (keyElement) {
+        keyElement.classList.add('active');
+        setTimeout(() => keyElement.classList.remove('active'), 100);
+      }
+    }
+    
+    // Initializes a new lesson
+    function initLesson() {
+      text = generateText(wordCount);
+      currentIndex = 0;
+      errorCount = 0;
+      timeLeft = totalTime;
+      startTime = null;
+      isStarted = false;
+      displayText();
+      updateMetrics();
+      startBtn.disabled = false;
+      resultsScreen.classList.remove('show');
+    }
+    
+    // Starts the session and timer
+    function startSession() {
+      if (isStarted) return;
+      isStarted = true;
+      startTime = new Date();
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateMetrics();
+        if (timeLeft <= 0) endSession();
+      }, 1000);
+    }
+    
+    // Restart the lesson and clear timer
+    function resetSession() {
+      clearInterval(timerInterval);
+      initLesson();
+    }
+    
+    // Button event listeners
+    startBtn.addEventListener('click', function() {
+      startSession();
+      startBtn.disabled = true;
+    });
+    restartBtn.addEventListener('click', resetSession);
+    resultsRestartBtn.addEventListener('click', resetSession);
+    
+    // Setup keyboard and initialize lesson
+    createKeyboard();
+    initLesson();
+  </script>
+</body>
+</html>
